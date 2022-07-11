@@ -1,9 +1,17 @@
-/*
-    body{
-    margin: 0;
-    padding: 0;
+.table-head-content-width {
+    width: 100%;
+    white-space: nowrap;
 }
-    */
+
+.hide-next-button {
+    display: none !important
+}
+
+.navbar-nav {
+    /* padding: 5px 0px; */
+    margin-bottom: 10%;
+}
+
 .carousel-inner {
     height: 400px;
 }
