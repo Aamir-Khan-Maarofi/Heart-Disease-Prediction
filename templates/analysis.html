@@ -32,13 +32,13 @@
     <!-- START TABULAR VIEW -->
     <div id="tabular_view" class="table-responsive" style="margin-bottom: 2%; margin-top: 2%;">
         <table class="table table-light table-head-content-width" id="data_table"> </table>
-        
-        
+
+
     </div>
     <!-- END TABULAR VIEW -->
 
     <div id="next_button" class="d-flex flex-row-reverse">
-        <button type="button" class="btn btn-primary" >Clean Data</button>
+        <button type="button" class="btn btn-primary" onclick="cleanData()">Clean Data</button>
     </div>
 </div>
 
@@ -98,7 +98,6 @@
             return el;
         });
 
-        sessionStorage.setItem('headers', headers);
         localStorage.setItem('headers', headers);
         localStorage.setItem('objectified_data', JSON.stringify(arr));
 
@@ -136,6 +135,18 @@
         table.DataTable();
     }
 
+    function cleanData() {
+        const data = localStorage.objectified_data;
+
+        $.ajax({
+            url: '/clean_data',
+            type: 'POST',
+            data: data,   // converts js value to JSON string
+            contentType: 'application/json;charset=UTF-8',
+        }).done(function (result) {     // on success get the return object from server
+            console.log(result)     // do whatever with it. In this case see it in console
+        })
+    }
 </script>
 
 {% endblock %}
