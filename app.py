@@ -1,18 +1,35 @@
-from flask import Flask, redirect, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
+from flask_login import LoginManager, login_required, login_user, logout_user
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from models import db, UserModel
+from flask_bcrypt import Bcrypt
 import pandas as pd
 import secrets
 import joblib
 
+
 app = Flask(__name__)
-app.secret_key = secrets.token_bytes(32)
+bcrypt = Bcrypt(app)
 db.init_app(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hdp_database.db'
+app.secret_key = secrets.token_bytes(32)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return UserModel.query.get(int(user_id))
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
 
 @app.route('/')
 def hello():
@@ -88,6 +105,76 @@ def train_model():
             return {'message': 'Failed - Internal Server Error - {}'.format(error), 'status': 500}
     else:
         return {'message': 'Method not allowed, only POST method is supported', 'status': 404}
+
+
+@app.route('/user_demographics', methods=['GET', 'POST'])
+@login_required
+def user_demographics():
+    return render_template('user_demographics.html')
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    if request.method == "POST":
+        form_data = dict(request.form)
+        user = UserModel.query.filter_by(email=form_data['email']).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form_data['password']):
+                login_user(user)
+                return render_template('user_demographics.html')
+            else:
+                return {
+                    "message" : "Incorrect Password for {}".format(form_data['email']),
+                    "status"  : 404
+                } 
+        else:
+            return {
+                    "message" : "User {} doesn't exist. Please register on the register page".format(form_data['email']),
+                    "status"  : 404
+                } 
+    elif request.method == "GET":
+        return render_template('login.html')
+    else: 
+        return {
+            "message" : 'Method not allowed, only GET and POST methods are entertained',
+            "status"  : 404
+        }
+
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    return render_template('login.html')
+
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    if request.method == "POST":
+        form_data = dict(request.form)
+        data = {
+            'username' : form_data['name'],
+            'email' : form_data['email'],
+            'password' : bcrypt.generate_password_hash(form_data['password'])
+        }
+
+        new_user = UserModel(data)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for('login')) 
+    
+    elif request.method == "GET":
+        return render_template('register.html')
+
+    else: 
+        return {
+            "message" : 'Method not allowed, only GET and POST methods are entertained',
+            "status"  : 404
+        }
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

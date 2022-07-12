@@ -1,17 +1,17 @@
 from datetime import datetime
-import logging as logger
+from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class UserModel(db.Model):
+class UserModel(db.Model, UserMixin):
     __tablename__ = "users"
     id = db.Column(db.Integer(), primary_key=True)
     created_at = db.Column(db.DateTime(), default=datetime.utcnow())
-    username = db.Column(db.String())
+    username = db.Column(db.String(), nullable=False)
     # Use Right email and password data types instead of strings
-    email = db.Column(db.String())
-    password = db.Column(db.String())
+    email = db.Column(db.String(), nullable=False, unique=True)
+    password = db.Column(db.String(), nullable=False)
 
     def __init__(self, data) -> None:
         self.username = data['username']
