@@ -2,6 +2,7 @@ from flask import Flask, redirect, render_template, request
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 from models import db, UserModel
 import pandas as pd
 import secrets
@@ -75,15 +76,11 @@ def train_model():
             model.fit(x_train, y_train)
             y_pred = model.predict(x_test)
 
-            print('<=====================================================================>')
-            print("Accuracy= ", model.score(x_test, y_test)*100)
-            print('<=====================================================================>')
-
             joblib.dump(model, "model.pkl")
 
             return {
-                'message': 'Successfully Trained the Logistic Regression model',
-                'data': 'Model Score: {}'.format(model.score(x_test, y_test)*100),
+                'message': 'Logistic Regression, Training Successfull',
+                'body': 'Model accuracy score: {}'.format(accuracy_score(y_test, y_pred)*100),
                 'status': 200
                 }
 

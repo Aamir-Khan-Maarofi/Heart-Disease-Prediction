@@ -1,8 +1,4 @@
 $(document).ready(() => {
-
-    $('#exampleModalCenter').modal('show')
-
-
     $('#div_data_table').hide();
     $('#div_clean_data_table').hide();
     $('#div_train_data_table').hide();
@@ -137,8 +133,15 @@ function trainModel() {
         contentType: 'application/json;charset=UTF-8',
     }).done(function (response) {     // on success get the return object from server
         if (response.status == 200) {
-            console.log("Trained the model")
-            // $('#exampleModalCenter').modal();
+            console.log("Trained the model");
+            $('#modal-title').append(`${response.message}`);
+            $('#modal-body').append(`<p> ${response.body} </p>`);
+            $('#modal').modal({backdrop: 'static', keyboard: false});  
+        }
+        else {
+            $('#mdoal-title').append(`${response.message}`);
+            $('#modal-body').append('<p> SOMETING WENT WRONG </p>');
+            $('#modal').modal({backdrop: 'static', keyboard: false});
         }
     });
 }
