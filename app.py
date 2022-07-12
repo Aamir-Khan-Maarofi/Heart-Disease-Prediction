@@ -1,5 +1,5 @@
 from flask import Flask, redirect, render_template, request, url_for
-from flask_login import LoginManager, login_required, login_user, logout_user
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -33,11 +33,11 @@ def create_tables():
 
 @app.route('/')
 def hello():
-    return render_template('index.html')
+    return render_template('index.html', logged_in = current_user.is_authenticated)
 
 @app.route('/analysis')
 def analysis():
-    return render_template('analysis.html')
+    return render_template('analysis.html', logged_in = current_user.is_authenticated)
 
 @app.route('/clean_data', methods=["POST"])
 def clean_data():
@@ -169,12 +169,6 @@ def register():
             "message" : 'Method not allowed, only GET and POST methods are entertained',
             "status"  : 404
         }
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

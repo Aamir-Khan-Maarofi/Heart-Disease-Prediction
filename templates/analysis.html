@@ -2,6 +2,14 @@
 
 {% block title %} Analysis {% endblock %}
 
+{% block login_logout %}
+{% if logged_in %}
+<a class="nav-link" href="/logout">LOG OUT <span class="sr-only">(current)</span></a>
+{% else %}
+<a class="nav-link" href="/login">LOG IN <span class="sr-only">(current)</span></a>
+{% endif %}
+{% endblock %}
+
 {% block body %}
 
 <div class="container" style="margin-bottom: 3%;">

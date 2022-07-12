@@ -2,6 +2,15 @@
 
 {% block title %} Hear Disease Prediction System {% endblock %}
 
+{% block login_logout %}
+{% if logged_in %}
+<a class="nav-link" href="/logout">LOG OUT <span class="sr-only">(current)</span></a>
+{% else %}
+<a class="nav-link" href="/login">LOG IN <span class="sr-only">(current)</span></a>
+{% endif %}
+
+{% endblock %}
+
 {% block body %}
 <!-- slider -->
 <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
