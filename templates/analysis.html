@@ -4,7 +4,7 @@
 
 {% block body %}
 
-<div class="container">
+<div class="container" style="margin-bottom: 3%;">
 
     <!-- START FILE INPUT CARD -->
     <div style="padding-top:10%" id="input_card" class="row align-items-center justify-content-center">
@@ -15,7 +15,14 @@
 
             <div class="card-body text-light bg-secondary">
                 <h5 class="card-title">Once Loaded The Data Will Be Displayed in Tabular View</h5>
-                <p class="card-text">This input supports the heart disease dataset only</p>
+                <p class="card-text">
+                    Upload the Heart Disease Dataset located at: <a href="#">Heart Disease Predection Dataset</a>.
+                    The Dataset must have following columns in it because first five are considered as features and last
+                    one is considered
+                    target value for Logistic Regression model. Changes in the Dataset will lead to Bias or
+                    training/preprocessing errors. <br><br>
+                    Headers : 'Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium', 'Heart Disease'
+                </p>
 
                 <div class="form-group ">
                     <div class="custom-file pmd-custom-file-outline">
@@ -30,123 +37,63 @@
     <!-- END FILE INPUT CARD -->
 
     <!-- START TABULAR VIEW -->
-    <div id="tabular_view" class="table-responsive" style="margin-bottom: 2%; margin-top: 2%;">
-        <table class="table table-light table-head-content-width" id="data_table"> </table>
+    <div id="tabular_view">
+        <div class="table-responsive" id="div_data_table" style="margin-bottom: 2%; margin-top: 2%;">
+            <h3 class="align-items-center justify-content-center"> Heart Disease Dataset Loaded (RAW) </h3>
+            <table class="table table-light table-head-content-width" id="data_table">
+            </table>
+        </div>
 
+        <div class="table-responsive" id="div_clean_data_table" style="margin-top: 2%; margin-bottom: 6%;">
+            <h3 class="align-items-center justify-content-center"> Cleaned Dataset (Not Splitted) </h3>
+            <table class="table table-light table-head-content-width" id="clean_data_table"> </table>
+        </div>
 
+        <div class="table-responsive" id="div_train_data_table" style="margin-bottom: 6%;">
+            <h3 class="align-items-center justify-content-center"> 70% of Dataset to be used for Training </h3>
+            <table class="table table-light table-head-content-width" id="train_data_table"> </table>
+        </div>
+
+        <div class="table-responsive" id="div_test_data_table" style="margin-bottom: 3%;">
+            <h3 class="align-items-center justify-content-center"> 30% of Dataset to be used for Testing </h3>
+            <table class="table table-light table-head-content-width" id="test_data_table"> </table>
+        </div>
     </div>
     <!-- END TABULAR VIEW -->
 
-    <div id="next_button" class="d-flex flex-row-reverse">
+    <div id="btn-clean-data" class="d-flex flex-row-reverse">
         <button type="button" class="btn btn-primary" onclick="cleanData()">Clean Data</button>
     </div>
+
+    <div id="btn-train-model" class="d-flex flex-row-reverse">
+        <button type="button" class="btn btn-primary" onclick="trainModel()">Train Model</button>
+    </div>
+
+    <!-- SUCCESS MODAL AFTER TRAINING IS COMPLETED -->
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <!-- <span aria-hidden="true">&times;</span> -->
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Something in the boday
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL CODE -->
 </div>
 
-<script>
-
-    $(document).ready(() => {
-        $('#tabular_view').hide();
-        $('#next_button').removeClass('d-flex');
-        $('#next_button').css('display', 'none');
-    });
-
-    $("#load_data").on('change', function () {
-        console.log($('#load_data').prop('files')[0])
-        const csvFile = $('#load_data').prop('files')[0];
-        const reader = new FileReader();
-
-        reader.onload = (event) => {
-            const text = event.target.result;
-            const [headers, data] = ObjectifyCSV(text);
-
-            // Hide the input card and show tablular_view on successful upload
-            $('#input_card').hide();
-            $('#next_button').addClass('d-flex');
-            $('#tabular_view').show();
-
-            fillDataInTable(headers, data);
-        }
-
-        reader.readAsText(csvFile);
-    });
-
-
-    function ObjectifyCSV(str, delimiter = ",") {
-        // slice from start of text to the first \n index
-        // use split to create an array from string by delimiter
-        let headers = str.slice(0, str.indexOf("\n")).split(delimiter).map(
-            (value) => { return value.replace("\r", ""); }
-        );
-
-        // slice from \n index + 1 to the end of the text
-        // use split to create an array of each csv value row
-        let rows = str.slice(str.indexOf("\n") + 1).split("\n").map(
-            (value) => { return value.replace("\r", ""); }
-        );
-
-        // Map the rows
-        // split values from each row into an array
-        // use headers.reduce to create an object
-        // object properties derived from headers:values
-        // the object passed as an element of the array
-        const arr = rows.map(function (row) {
-            const values = row.split(delimiter);
-            const el = headers.reduce(function (object, header, index) {
-                object[header] = values[index];
-                return object;
-            }, {});
-            return el;
-        });
-
-        localStorage.setItem('headers', headers);
-        localStorage.setItem('objectified_data', JSON.stringify(arr));
-
-        return [headers, arr]
-
-    }
-
-    function fillDataInTable(headers, data) {
-        let [tableStructure, tableHead, tableData] = ['', '', ''];
-        let table = $('#data_table');
-
-        headers.forEach((header) => tableHead += `<th scope="col">${header}</th>`);
-        data.forEach((row, index) => {
-            let rowDetails = `<tr> <th scope="row">${index}</th>`;
-            let rowValues = Object.values(row);
-            rowValues.forEach((cellValue) => rowDetails += `<td> ${cellValue} </td>`);
-            rowDetails += '</tr>';
-
-            tableData += rowDetails;
-        });
-
-        tableStructure += `
-            <thead class="thead-light">
-                <tr> 
-                    <th scope="col">#</th>
-                    ${tableHead} 
-                </tr>
-            </thead>
-
-            <tbody>
-                ${tableData}
-            </tbody>
-        `
-        table.append(tableStructure);
-        table.DataTable();
-    }
-
-    function cleanData() {
-        const data = localStorage.objectified_data;
-
-        $.ajax({
-            url: '/clean_data',
-            type: 'POST',
-            data: data,   // converts js value to JSON string
-            contentType: 'application/json;charset=UTF-8',
-        }).done(function (result) {     // on success get the return object from server
-            console.log(result)     // do whatever with it. In this case see it in console
-        })
-    }
-</script>
+<script src={{ url_for('static', filename='analysis-script.js') }}> </script>
 
 {% endblock %}

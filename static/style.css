@@ -3,10 +3,6 @@
     white-space: nowrap;
 }
 
-.hide-next-button {
-    display: none !important
-}
-
 .navbar-nav {
     /* padding: 5px 0px; */
     margin-bottom: 10%;

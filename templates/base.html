@@ -5,21 +5,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="" />
-    <link rel="stylesheet" href= {{ url_for('static', filename='style.css') }} />
+    <link rel="stylesheet" href={{ url_for('static', filename='style.css' ) }} />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap4.min.css">
 
-    <!-- https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css
-    	https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap4.min.css -->
-    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"> </script>
     <script src="https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap4.min.js"></script>
-    
-    <!-- https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js
-    https://cdn.datatables.net/1.12.1/js/dataTables.bootstrap4.min.js -->
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous">
+    </script>
+
     <title>{% block title %} {% endblock %}</title>
 
 </head>
@@ -45,10 +43,11 @@
                         <a class="nav-link" href="/analysis">ANALYSIS<span class="sr-only">(current)</span></a>
                     </strong>
                 </li>
-                
+
                 <li class="nav-item active">
                     <strong>
-                        <a class="nav-link" href="/user_demographics" >USER DEMOGRAPHICS <span class="sr-only">(current)</span></a>
+                        {% block udd %} {% endblock %}
+                        <!-- <a class="nav-link" href="/user_demographics" >USER DEMOGRAPHICS <span class="sr-only">(current)</span></a> -->
                     </strong>
                 </li>
                 <li class="nav-item active">
@@ -56,7 +55,7 @@
                         <a class="nav-link" href="/">FIRST AID <span class="sr-only">(current)</span></a>
                     </strong>
                 </li>
-                
+
                 <li class="nav-item active">
                     <strong>
                         <a class="nav-link" href="/">LOG IN<span class="sr-only">(current)</span></a>
