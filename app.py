@@ -22,9 +22,11 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return UserModel.query.get(int(user_id))
+
 
 @app.before_first_request
 def create_tables():
@@ -33,84 +35,13 @@ def create_tables():
 
 @app.route('/')
 def hello():
-    return render_template('index.html', logged_in = current_user.is_authenticated)
+    return render_template('index.html', logged_in=current_user.is_authenticated)
+
 
 @app.route('/analysis')
 def analysis():
-    return render_template('analysis.html', logged_in = current_user.is_authenticated)
+    return render_template('analysis.html', logged_in=current_user.is_authenticated)
 
-@app.route('/clean_data', methods=["POST"])
-def clean_data():
-
-    if request.method == "POST":
-        try:
-            data = request.get_json(force=True)
-            csv_data = ''
-        
-            with open('./data.csv', 'w') as data_file:
-                for row in data:
-                    csv_data += ",".join(row.values()) + '\n'
-                
-                data_file.write(csv_data)
-
-            heart = pd.read_csv('./data.csv', names=data[0].keys())
-
-            heart["ST depression"] = heart["ST depression"].astype("int64")
-            
-            min_max = MinMaxScaler()
-            columns_to_scale = ['Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium']
-            heart[columns_to_scale ] = min_max.fit_transform(heart[columns_to_scale ])
-
-            x = heart[['Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium']]
-            y = heart['Heart Disease']
-            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.30)
-            
-            data = {
-                'headers' : ['Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium', 'Heart Disease'],
-                'clean_data' : (x.join(y)).to_dict('records'), 
-                'train_data' : (x_train.join(y_train)).to_dict('records'),
-                'test_data' : (x_test.join(y_test)).to_dict('records')
-            }
-
-            return {'message': 'Success', 'data': data, 'status': 200}
-        except Exception as error:
-            return {'message': 'Failed - Internal Server Error - {}'.format(error), 'status': 500}
-    else:
-        return {'message': 'Method not allowed, only POST method is supported', 'status': 404}
-
-@app.route('/train_model', methods=["POST"])
-def train_model():
-
-    if request.method == "POST":
-        try:
-            data = request.get_json(force=True)
-            train_data = pd.DataFrame(data['train_data'])
-            test_data = pd.DataFrame(data['test_data'])
-            x_train, y_train = train_data[['Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium']] , train_data['Heart Disease']
-            x_test, y_test= test_data[['Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium']], test_data['Heart Disease']
-
-            model = LogisticRegression()
-            model.fit(x_train, y_train)
-            y_pred = model.predict(x_test)
-
-            joblib.dump(model, "model.pkl")
-
-            return {
-                'message': 'Logistic Regression, Training Successfull',
-                'body': 'Model accuracy score: {}'.format(accuracy_score(y_test, y_pred)*100),
-                'status': 200
-                }
-
-        except Exception as error:
-            return {'message': 'Failed - Internal Server Error - {}'.format(error), 'status': 500}
-    else:
-        return {'message': 'Method not allowed, only POST method is supported', 'status': 404}
-
-
-@app.route('/user_demographics', methods=['GET', 'POST'])
-@login_required
-def user_demographics():
-    return render_template('user_demographics.html')
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -123,21 +54,22 @@ def login():
                 return render_template('user_demographics.html')
             else:
                 return {
-                    "message" : "Incorrect Password for {}".format(form_data['email']),
-                    "status"  : 404
-                } 
+                    "message": "Incorrect Password for {}".format(form_data['email']),
+                    "status": 404
+                }
         else:
             return {
-                    "message" : "User {} doesn't exist. Please register on the register page".format(form_data['email']),
-                    "status"  : 404
-                } 
+                "message": "User {} doesn't exist. Please register on the register page".format(form_data['email']),
+                "status": 404
+            }
     elif request.method == "GET":
         return render_template('login.html')
-    else: 
+    else:
         return {
-            "message" : 'Method not allowed, only GET and POST methods are entertained',
-            "status"  : 404
+            "message": 'Method not allowed, only GET and POST methods are entertained',
+            "status": 404
         }
+
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -145,30 +77,130 @@ def logout():
     logout_user()
     return render_template('login.html')
 
+
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     if request.method == "POST":
         form_data = dict(request.form)
         data = {
-            'username' : form_data['name'],
-            'email' : form_data['email'],
-            'password' : bcrypt.generate_password_hash(form_data['password'])
+            'username': form_data['name'],
+            'email': form_data['email'],
+            'password': bcrypt.generate_password_hash(form_data['password'])
         }
 
         new_user = UserModel(data)
         db.session.add(new_user)
         db.session.commit()
 
-        return redirect(url_for('login')) 
-    
+        return redirect(url_for('login'))
+
     elif request.method == "GET":
         return render_template('register.html')
 
-    else: 
+    else:
         return {
-            "message" : 'Method not allowed, only GET and POST methods are entertained',
-            "status"  : 404
+            "message": 'Method not allowed, only GET and POST methods are entertained',
+            "status": 404
         }
+
+
+@app.route('/clean_data', methods=["POST"])
+def clean_data():
+
+    if request.method == "POST":
+        try:
+            data = request.get_json(force=True)
+            csv_data = ''
+
+            with open('./data.csv', 'w') as data_file:
+                for row in data:
+                    csv_data += ",".join(row.values()) + '\n'
+
+                data_file.write(csv_data)
+
+            heart = pd.read_csv('./data.csv', names=data[0].keys())
+
+            heart["ST depression"] = heart["ST depression"].astype("int64")
+
+            min_max = MinMaxScaler()
+            columns_to_scale = ['Age', 'BP',
+                                'Cholesterol', 'Max HR', 'Thallium']
+            heart[columns_to_scale] = min_max.fit_transform(
+                heart[columns_to_scale])
+
+            x = heart[['Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium']]
+            y = heart['Heart Disease']
+            x_train, x_test, y_train, y_test = train_test_split(
+                x, y, test_size=0.30)
+
+            data = {
+                'headers': ['Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium', 'Heart Disease'],
+                'clean_data': (x.join(y)).to_dict('records'),
+                'train_data': (x_train.join(y_train)).to_dict('records'),
+                'test_data': (x_test.join(y_test)).to_dict('records')
+            }
+
+            return {'message': 'Success', 'data': data, 'status': 200}
+        except Exception as error:
+            return {'message': 'Failed - Internal Server Error - {}'.format(error), 'status': 500}
+    else:
+        return {'message': 'Method not allowed, only POST method is supported', 'status': 404}
+
+
+@app.route('/train_model', methods=["POST"])
+def train_model():
+
+    if request.method == "POST":
+        try:
+            data = request.get_json(force=True)
+            train_data = pd.DataFrame(data['train_data'])
+            test_data = pd.DataFrame(data['test_data'])
+            x_train, y_train = train_data[[
+                'Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium']], train_data['Heart Disease']
+            x_test, y_test = test_data[[
+                'Age', 'BP', 'Cholesterol', 'Max HR', 'Thallium']], test_data['Heart Disease']
+
+            model = LogisticRegression()
+            model.fit(x_train, y_train)
+            y_pred = model.predict(x_test)
+
+            joblib.dump(model, "model.pkl")
+
+            return {
+                'message': 'Logistic Regression, Training Successfull',
+                'body': 'Accuracy Score for Trained LR Model : {}'.format(accuracy_score(y_test, y_pred)*100),
+                'status': 200
+            }
+
+        except Exception as error:
+            return {'message': 'Failed - Internal Server Error - {}'.format(error), 'status': 500}
+    else:
+        return {'message': 'Method not allowed, only POST method is supported', 'status': 404}
+
+
+@app.route('/user_demographics', methods=['GET', 'POST'])
+@login_required
+def user_demographics():
+    if request.method == "GET":
+        return render_template('user_demographics.html')
+    elif request.method == "POST":
+        try:
+            # Get data from form and make predictions
+            user_data = dict(request.get_json())['values']
+            print(user_data)
+            loaded_model = joblib.load('model.pkl')
+            prediction = loaded_model.predict(user_data)
+            print(prediction)
+
+            return {
+                "message": "PREDICTION BASED ON USER DATA", 
+                'body': 'The algorithm infered {} of heart disease'.format(prediction[0]), 
+                "status": 200
+            }
+        except Exception as error:
+            return {'message': 'Failed - Internal Server Error - {}'.format(error), 'status': 500}
+    else:
+        return {'message': 'Method not allowed, only POST method is supported', 'status': 404}
 
 
 if __name__ == "__main__":
