@@ -204,4 +204,4 @@ def user_demographics():
 
 
 if __name__ == "__main__":
-    app.run('localhost', 9999, debug=True, use_reloader=True)
+    app.run('localhost', 8080, debug=True, use_reloader=True)
