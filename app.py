@@ -42,7 +42,9 @@ def hello():
 def analysis():
     return render_template('analysis.html', logged_in=current_user.is_authenticated)
 
-
+@app.route('/first_aid')
+def first_aid():
+    return render_template('first_aid.html', logged_in=current_user.is_authenticated)
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if request.method == "POST":
